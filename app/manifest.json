@@ -1,0 +1,41 @@
+{
+    "name": "__MSG_appName__",
+    "description": "__MSG_appDescription__",
+    "version": "2",
+    "manifest_version": 2,
+    "default_locale": "en",
+    "permissions": [
+        {
+            "socket": [
+                "udp-bind:*:*",
+                "udp-send-to:*:*"
+            ]
+        },
+        "app.window",
+        "<all_urls>",
+        "notifications",
+        "system.network"
+    ],
+    "sockets": {
+        "udp": {
+            "send": ["*:*"],
+            "bind": ["*:*"]
+        }
+    },
+    "icons": {
+        "16": "images/icon-16.png",
+        "128": "images/icon-128.png"
+    },
+    "app": {
+        "background": {
+            "scripts": [
+                "bower_components/underscore/underscore.js",
+                "bower_components/ipaddr/ipaddr.min.js",
+                "scripts/vendor/encoding.js",
+                "scripts/ipmsgCommand.js",
+                "scripts/main.js",
+                "scripts/chromereload.js"
+            ]
+        }
+    }
+}
