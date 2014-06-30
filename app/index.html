@@ -9,12 +9,31 @@
 
     <!-- build:css styles/main.css -->
     <link rel="stylesheet" href="styles/main.css">
+    <link rel="stylesheet" href="styles/main.scss">
     <!-- endbuild -->
 </head>
 <body>
     <div class="container main" ng-app="IPMessenger" ng-csp>
         <div class="row" ng-controller="ComposerCtrl">
             <div class="col-sm-12">
+                <div class="host-list">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>IP</th>
+                            <th>Hostname</th>
+                            <th>Name</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr ng-repeat="host in hostList|orderBy:'ipAddress'" ng-click="selectHost(host);">
+                            <td>{{host.ipAddress}}</td>
+                            <td>{{host.hostName}}</td>
+                            <td>{{host.userName}}</td>
+                        </tr>
+                    </tbody>
+                </table>
+                </div>
                 <form role="form" class="form-horizontal">
                     <div class="form-group">
                         <label for="ipaddress" class="col-md-2 control-label">To IP Address</label>

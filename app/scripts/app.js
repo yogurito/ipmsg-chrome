@@ -1,3 +1,4 @@
+/* jshint unused:false */
 'use strict';
 angular.module('IPMessenger', [])
     .controller('ComposerCtrl', function($scope) {
@@ -41,4 +42,16 @@ angular.module('IPMessenger', [])
                 }
             });
         };
+
+        $scope.selectHost = function(host){
+            $scope.toIPAddress = host.ipAddress;
+        };
+
+        $scope.hostList = [];
+        chrome.runtime.onMessage.addListener(function(request, sender, sendResponse){
+            if(request.message === 'hostListUpdate') {
+                $scope.hostList.push(request.host);
+                $scope.$apply();
+            }
+        });
     });

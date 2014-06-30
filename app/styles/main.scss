@@ -6,3 +6,9 @@ $icon-font-path: "bower_components/bootstrap-sass-official/vendor/assets/fonts/b
 .main {
 	margin: 10px 10px;
 }
+
+.host-list {
+    height: 200px;
+    overflow: scroll;
+    margin-bottom: 20px;
+}

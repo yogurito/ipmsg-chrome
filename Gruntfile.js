@@ -46,7 +46,7 @@ module.exports = function (grunt) {
                 files: ['Gruntfile.js']
             },
             styles: {
-                files: ['<%= config.app %>/styles/{,*/}*.css'],
+                files: ['<%= config.app %>/styles/{,*/}*.css', '<%= config.app %>/styles/{,*/}*.scss'],
                 tasks: [],
                 options: {
                     livereload: true
@@ -361,7 +361,7 @@ module.exports = function (grunt) {
     grunt.registerTask('debug', function (platform) {
         var watch = grunt.config('watch');
         platform = platform || 'chrome';
-        
+
         // Configure compass task for debug[server:chrome] task
         watch.compass = {
             files: ['<%= config.app %>/styles/{,*/}*.{scss,sass}'],
@@ -372,7 +372,7 @@ module.exports = function (grunt) {
         if (platform === 'server') {
             watch.styles.tasks = ['newer:copy:styles'];
             watch.styles.options.livereload = false;
-            
+
         }
 
         // Configure updated watch task

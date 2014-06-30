@@ -16,6 +16,7 @@ var HostList = function(){
         host.hostName = hostName;
         host.userName = userName;
         console.log(list);
+        return host;
     };
     HostList.prototype.getHostList = function(){
         return list;
@@ -29,6 +30,7 @@ var IPMessengerBackend = function() {
         userName: 'ChromeUser'
     };
     this.hostList = new HostList();
+    this.myAddress = [];
 
     var _this = this;
     var createPacketNotification = function(packetInfo, command) {
@@ -64,7 +66,8 @@ var IPMessengerBackend = function() {
     };
     var handleCommand = function(packetInfo, command) {
         if(command.getCommandName() === 'IPMSG_BR_ENTRY') {
-            _this.hostList.appendHost(packetInfo.remoteAddress, command.hostName, command.userName);
+            var host = _this.hostList.appendHost(packetInfo.remoteAddress, command.hostName, command.userName);
+            chrome.runtime.sendMessage({message: 'hostListUpdate', host: host});
         }
     };
     this.initializeSocket = function() {
@@ -108,9 +111,17 @@ var IPMessengerBackend = function() {
         command.userName = this.myHost.hostName;
         command.hostName = this.myHost.userName;
         command.commandCode = command.commandCodes.IPMSG_BR_ENTRY;
-        chrome.sockets.udp.send(this.socketId, strToSjisBuffer(command.toCommandStr()), '192.168.100.105', 2425, function(sendInfo){
-            console.log('BR_ENTRY sent');
-        });
+        chrome.sockets.udp.send(this.socketId, strToSjisBuffer(command.toCommandStr()), '192.168.100.105', 2425, function(sendInfo){});
+    };
+    this.broadcastBrEntryCommand = function(addrArray) {
+        var command = new IPMessengerCommand();
+        command.userName = this.myHost.hostName;
+        command.hostName = this.myHost.userName;
+        command.commandCode = command.commandCodes.IPMSG_BR_ENTRY;
+        var sendCallaback = function(sendInfo){};
+        for(var i = 0; i < addrArray.length; i++) {
+            chrome.sockets.udp.send(this.socketId, strToSjisBuffer(command.toCommandStr()), addrArray[i], 2425, sendCallaback);
+        }
     };
 };
 
@@ -133,6 +144,20 @@ chrome.app.runtime.onLaunched.addListener(function() {
     var backend = new IPMessengerBackend();
     backend.initializeSocket();
     chrome.system.network.getNetworkInterfaces(function(interfaces){
-        console.log(interfaces);
+        for(var i = 0; i < interfaces.length; i++) {
+            var addr = window.ipaddr.parse(interfaces[i].address);
+            if(addr.kind() === 'ipv6') {
+                continue;
+            }
+            backend.myAddress.push(addr);
+            if (interfaces[i].prefixLength === 24) {
+                var broadcastList = [];
+                var octets = addr.octets;
+                for(var j = 1; j < 255; j++) {
+                    broadcastList.push(octets[0] + '.' + octets[1] + '.' + octets[2] + '.' + j);
+                }
+                backend.broadcastBrEntryCommand(broadcastList);
+            }
+        }
     });
 });
