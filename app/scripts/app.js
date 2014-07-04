@@ -34,7 +34,6 @@ angular.module('IPMessenger', [])
 
         $scope.sendMessage = function() {
             chrome.sockets.udp.send(socketId, strToSjisBuffer('1:1000:chrome:macbook:32:' + $scope.message), $scope.toIPAddress, 2425, function(sendInfo) {
-                console.log(sendInfo);
                 if (sendInfo.resultCode === 0) {
                     $scope.clearForm();
                     $scope.$apply();
