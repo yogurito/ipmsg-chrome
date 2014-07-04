@@ -52,6 +52,10 @@ module.exports = function (grunt) {
                     livereload: true
                 }
             },
+            compass: {
+                files: ['<%= config.app %>/styles/{,*/}*.{scss,sass}'],
+                tasks: ['compass:server', 'autoprefixer']
+            },
             livereload: {
                 options: {
                     livereload: '<%= connect.options.livereload %>'
@@ -296,11 +300,19 @@ module.exports = function (grunt) {
                 }]
             },
             styles: {
-                expand: true,
-                dot: true,
-                cwd: '<%= config.app %>/styles',
-                dest: '.tmp/styles/',
-                src: '{,*/}*.css'
+                files: [{
+                    expand: true,
+                    dot: true,
+                    cwd: '<%= config.app %>/styles',
+                    dest: '.tmp/styles/',
+                    src: '{,*/}*.css'
+                },{
+                    expand: true,
+                    dot: true,
+                    cwd: '<%= config.app %>/bower_components/',
+                    dest: '.tmp/styles/',
+                    src: 'bootstrap-sass-official/vendor/assets/fonts/bootstrap/*'
+                }]
             }
         },
 
