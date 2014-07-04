@@ -8,7 +8,7 @@ $icon-font-path: '/bower_components/bootstrap-sass-official/vendor/assets/fonts/
 }
 
 .host-list {
-    height: 200px;
+    max-height: 200px;
     overflow: scroll;
     margin-bottom: 20px;
 }

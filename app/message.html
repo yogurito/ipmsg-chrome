@@ -1,49 +1,29 @@
-<!doctype html>
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
-  <meta charset="utf-8">
+  <meta charset="UTF-8">
   <title>IPMessenger for Chrome</title>
-  <!-- build:css({.tmp,app}) styles/main.css -->
+  <!-- build:css({.tmp,app}) styles/message.css -->
   <link rel="stylesheet" href="styles/main.css">
   <!-- endbuild -->
 </head>
-<body>
-  <div class="container-fluid main" ng-app="IPMessenger" ng-csp>
-    <div class="row" ng-controller="ComposerCtrl">
+<body ng-csp ng-app="IPMessenger">
+  <div class="container-fluid main" ng-controller="MessageViewerCtrl">
+    <div class="row">
       <div class="col-sm-12">
-        <div class="host-list">
-          <table class="table table-hover table-condensed">
-            <thead>
-              <tr>
-                <th>&nbsp;</th>
-                <th>IP</th>
-                <th>Hostname</th>
-                <th>Name</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr ng-repeat="host in hostList|orderBy:'ipAddress'" ng-click="selectHost(host);">
-                <td><input type="checkbox" ng-model="host.selected"></td>
-                <td>{{host.ipAddress}}</td>
-                <td>{{host.hostName}}</td>
-                <td>{{host.userName}}</td>
-              </tr>
-            </tbody>
-          </table>
+        <dl class="dl-horizontal">
+          <dt>From</dt>
+          <dd>{{from.userName}} @ {{from.hostName}} ({{from.ipAddress}})</dd>
+          <dt>Received at</dt>
+          <dd>{{receivedAt | date:'medium'}}</dd>
+        </dl>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-sm-12">
+        <div class="well">
+          {{message}}
         </div>
-        <form role="form" class="form-horizontal">
-          <div class="form-group">
-            <label for="message" class="col-md-2 control-label">Message</label>
-            <div class="col-md-10">
-              <textarea name="message" id="message" class="form-control" ng-model="message"></textarea>
-            </div>
-          </div>
-          <div class="form-group">
-            <div class="col-md-10 col-md-offset-2">
-              <a ng-href="" class="btn btn-primary" ng-click="sendMessage()">send</a>
-            </div>
-          </div>
-        </form>
       </div>
     </div>
   </div>
@@ -64,11 +44,9 @@
   <script src="bower_components/angular/angular.js"></script>
   <!-- endbower -->
 
-  <!-- build:js scripts/index.js -->
-  <script src="scripts/index.js"></script>
+  <!-- build:js scripts/message.js -->
   <script src="scripts/vendor/encoding.js"></script>
-  <script src="scripts/ipmsgCommand.js"></script>
-  <script src="scripts/app.js"></script>
+  <script src="scripts/message.js"></script>
   <!-- endbuild -->
 </body>
 </html>
