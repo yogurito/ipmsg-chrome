@@ -282,6 +282,17 @@ module.exports = function (grunt) {
         //     dist: {}
         // },
 
+        ngmin: {
+            dist: {
+                files: [{
+                    expand: true,
+                    cwd: '<%= config.dist %>/scripts',
+                    src: '*.js',
+                    dest: '<%= config.dist %>/scripts'
+                }]
+            }
+        },
+
         // Copies remaining files to places other tasks can use
         copy: {
             dist: {
@@ -296,6 +307,7 @@ module.exports = function (grunt) {
                         '{,*/}*.html',
                         'styles/fonts/{,*/}*.*',
                         '_locales/{,*/}*.json',
+                        'bower_components/**/*'
                     ]
                 }]
             },
@@ -409,6 +421,7 @@ module.exports = function (grunt) {
         'useminPrepare',
         'concurrent:dist',
         'concat',
+        'ngmin',
         'cssmin',
         'uglify',
         'copy',
