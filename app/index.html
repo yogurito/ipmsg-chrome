@@ -7,10 +7,9 @@
     <!-- bower:css -->
     <!-- endbower -->
 
-    <!-- build:css styles/main.css -->
-    <link rel="stylesheet" href="styles/main.css">
-    <link rel="stylesheet" href="styles/main.scss">
-    <!-- endbuild -->
+  <!-- build:css({.tmp,app}) styles/main.css -->
+  <link rel="stylesheet" href="styles/main.css">
+  <!-- endbuild -->
 </head>
 <body>
     <div class="container main" ng-app="IPMessenger" ng-csp>
@@ -50,6 +49,7 @@
                     <div class="form-group">
                         <div class="col-md-10 col-md-offset-2">
                             <a ng-href="" class="btn btn-primary" ng-click="sendMessage()">send</a>
+                            <a ng-href="" class="btn btn-default" ng-click="openConfig()"><span class="glyphicon glyphicon-wrench"></span> Config</a>
                         </div>
                     </div>
                 </form>

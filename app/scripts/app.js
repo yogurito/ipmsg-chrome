@@ -53,4 +53,14 @@ angular.module('IPMessenger', [])
                 $scope.$apply();
             }
         });
+
+        $scope.openConfig = function(){
+            chrome.app.window.create('config.html', {
+                id: 'config',
+                bounds: {
+                    width: 300,
+                    height: 300
+                }
+            });
+        };
     });
