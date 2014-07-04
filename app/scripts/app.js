@@ -7,13 +7,12 @@ angular.module('IPMessenger', [])
             for (var i = 0; i < str.length; i++) {
                 strArray.push(str.charCodeAt(i));
             }
-            var sjisArray = window.Encoding.convert(strArray, 'SJIS', 'UTF8');
+            var sjisArray = window.Encoding.convert(strArray, 'SJIS', 'UNICODE');
             var buf = new ArrayBuffer(sjisArray.length); // 2 bytes for each char
             var bufView = new Uint8Array(buf);
             for (i = 0; i < sjisArray.length; i++) {
                 bufView[i] = sjisArray[i];
             }
-            console.log(bufView);
             return buf;
         };
 
