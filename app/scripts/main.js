@@ -141,7 +141,7 @@ var IPMessengerBackend = function() {
         host: host,
         hostList: _this.hostList.getHostList()
       });
-      if(commandName === 'IPMSG_BR_ENTRY' && !_.contains(_.map(_this.myAddress, function(addr){return addr.toString();}), packetInfo.remoteAddress)) {
+      if(command.commandCode === 1 && !_.contains(_.map(_this.myAddress, function(addr){return addr.toString();}), packetInfo.remoteAddress)) {
         var ansCommand = new IPMessengerCommand();
         ansCommand.userName = _this.myHost.userName;
         ansCommand.hostName = _this.myHost.hostName;
@@ -234,6 +234,12 @@ chrome.app.runtime.onLaunched.addListener(function() {
       top: Math.round((screen.availHeight - height) / 2)
     }
   });
+
+  var xhr = new XMLHttpRequest();
+  xhr.open('GET', 'http://www.google-analytics.com/collect?v=1&tid=UA-52545874-1&cid=' + new Date().getTime() + '&t=screenView&an=ipmsgChrome&cd=Launch', true);
+  xhr.onload = function(e) {
+  };
+  xhr.send();
 
   var socketId;
   var backend = new IPMessengerBackend();
