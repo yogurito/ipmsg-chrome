@@ -46,12 +46,22 @@ function onIceCandidate(evt) {
           cmd.userName = 'test';
           cmd.hostName = 'chrome';
           chrome.sockets.udp.send(socketId, window.strToSjisBuffer(cmd.toCommandStr()), window.peer.ipAddress, 2425, function(sendInfo) {
-            console.log('sent invitation');
+            console.log('sent invitation: ', pc.localDescription);
           });
         });
       });
     } else if (window.callee) {
-      console.log(iceCandidates);
+      chrome.sockets.udp.create({}, function(socketInfo) {
+        socketId = socketInfo.socketId;
+        chrome.sockets.udp.bind(socketId, '0.0.0.0', 0, function() {
+          var cmd = new IPMessengerCommand();
+          cmd.commandCode = 0x08000200;
+          cmd.appendix = JSON.stringify(pc.localDescription);
+          cmd.userName = 'test';
+          cmd.hostName = 'chrome';
+          chrome.sockets.udp.send(socketId, window.strToSjisBuffer(cmd.toCommandStr()), window.peer.ipAddress, 2425, function(sendInfo) {});
+        });
+      });
     }
   }
 }
@@ -68,9 +78,7 @@ function gotOffer(description) {
   chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
     if (request.message === 'ANSWER_SDP') {
       console.log('ANS RECV');
-      var remoteDescription = new RTCSessionDescription();
-      remoteDescription.sdp = request.sdp.sdp;
-      remoteDescription.type = request.sdp.type;
+      var remoteDescription = new RTCSessionDescription(request.sdp);
       console.log(remoteDescription);
       pc.setRemoteDescription(remoteDescription);
     }
@@ -80,17 +88,7 @@ function gotOffer(description) {
 function gotAnswer(description) {
   pc.setLocalDescription(description, function(answer) {
     console.log(pc.localDescription);
-    chrome.sockets.udp.create({}, function(socketInfo) {
-      socketId = socketInfo.socketId;
-      chrome.sockets.udp.bind(socketId, '0.0.0.0', 0, function() {
-        var cmd = new IPMessengerCommand();
-        cmd.commandCode = 0x08000200;
-        cmd.appendix = JSON.stringify(description);
-        cmd.userName = 'test';
-        cmd.hostName = 'chrome';
-        chrome.sockets.udp.send(socketId, window.strToSjisBuffer(cmd.toCommandStr()), window.peer.ipAddress, 2425, function(sendInfo) {});
-      });
-    });
+    console.log(pc.iceGatheringState);
   });
   var socketId;
   //pc.setRemoteDescription(description);
@@ -99,10 +97,10 @@ function gotAnswer(description) {
 function createPeerConnection(localMediaStream) {
   pc = new RTCPeerConnection(null);
   pc.onaddstream = onRemoteStreamAdded;
+  pc.onicecandidate = onIceCandidate;
   pc.addStream(localMediaStream);
 
   if (window.caller) {
-    pc.onicecandidate = onIceCandidate;
     pc.createOffer(gotOffer);
   }
   if (window.callee) {
