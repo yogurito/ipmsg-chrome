@@ -50,6 +50,8 @@ function onIceCandidate(evt) {
           });
         });
       });
+    } else if (window.callee) {
+      console.log(iceCandidates);
     }
   }
 }
@@ -57,6 +59,7 @@ function onIceCandidate(evt) {
 function onRemoteStreamAdded(event) {
   var remoteVideo = document.getElementById('remoteVideo');
   remoteVideo.src = URL.createObjectURL(event.stream);
+  console.log('Remote stream added');
 }
 
 function gotOffer(description) {
@@ -75,20 +78,21 @@ function gotOffer(description) {
 }
 
 function gotAnswer(description) {
-  pc.setLocalDescription(description);
-  console.log(description);
-  var socketId;
-  chrome.sockets.udp.create({}, function(socketInfo) {
-    socketId = socketInfo.socketId;
-    chrome.sockets.udp.bind(socketId, '0.0.0.0', 0, function() {
-      var cmd = new IPMessengerCommand();
-      cmd.commandCode = 0x08000200;
-      cmd.appendix = JSON.stringify(description);
-      cmd.userName = 'test';
-      cmd.hostName = 'chrome';
-      chrome.sockets.udp.send(socketId, window.strToSjisBuffer(cmd.toCommandStr()), window.peer.ipAddress, 2425, function(sendInfo) {});
+  pc.setLocalDescription(description, function(answer) {
+    console.log(pc.localDescription);
+    chrome.sockets.udp.create({}, function(socketInfo) {
+      socketId = socketInfo.socketId;
+      chrome.sockets.udp.bind(socketId, '0.0.0.0', 0, function() {
+        var cmd = new IPMessengerCommand();
+        cmd.commandCode = 0x08000200;
+        cmd.appendix = JSON.stringify(description);
+        cmd.userName = 'test';
+        cmd.hostName = 'chrome';
+        chrome.sockets.udp.send(socketId, window.strToSjisBuffer(cmd.toCommandStr()), window.peer.ipAddress, 2425, function(sendInfo) {});
+      });
     });
   });
+  var socketId;
   //pc.setRemoteDescription(description);
 }
 
@@ -106,9 +110,14 @@ function createPeerConnection(localMediaStream) {
     var remoteDescription = new RTCSessionDescription();
     remoteDescription.sdp = window.offeredSDP.sdp;
     remoteDescription.type = window.offeredSDP.type;
-    //console.log(window.offeredSDP);
-    pc.setRemoteDescription(remoteDescription);
-    pc.createAnswer(gotAnswer);
+    console.log('remoteDescription:', remoteDescription);
+    pc.setRemoteDescription(remoteDescription, function() {
+      console.log('success');
+      console.log(pc.remoteDescription);
+      pc.createAnswer(gotAnswer);
+    }, function(e) {
+      console.error(e);
+    });
   }
 }
 
