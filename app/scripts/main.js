@@ -169,7 +169,7 @@ var IPMessengerBackend = function() {
     } else if (command.commandCode === 0x08000200) {
       chrome.runtime.sendMessage({
         message: 'ANSWER_SDP',
-        sdp: command.appendix
+        sdp: JSON.parse(command.appendix)
       }, function(response) {});
     }
     console.log(command);

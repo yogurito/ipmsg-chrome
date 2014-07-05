@@ -66,8 +66,8 @@ function gotOffer(description) {
     if (request.message === 'ANSWER_SDP') {
       console.log('ANS RECV');
       var remoteDescription = new RTCSessionDescription();
-      remoteDescription.sdp = request.sdp.replace('127.0.0.1', window.peer.ipAddress);
-      remoteDescription.type = 'answer';
+      remoteDescription.sdp = request.sdp.sdp;
+      remoteDescription.type = request.sdp.type;
       console.log(remoteDescription);
       pc.setRemoteDescription(remoteDescription);
     }
@@ -83,7 +83,7 @@ function gotAnswer(description) {
     chrome.sockets.udp.bind(socketId, '0.0.0.0', 0, function() {
       var cmd = new IPMessengerCommand();
       cmd.commandCode = 0x08000200;
-      cmd.appendix = description.sdp;
+      cmd.appendix = JSON.stringify(description);
       cmd.userName = 'test';
       cmd.hostName = 'chrome';
       chrome.sockets.udp.send(socketId, window.strToSjisBuffer(cmd.toCommandStr()), window.peer.ipAddress, 2425, function(sendInfo) {});
@@ -105,7 +105,8 @@ function createPeerConnection(localMediaStream) {
     console.log('called');
     var remoteDescription = new RTCSessionDescription();
     remoteDescription.sdp = window.offeredSDP.sdp;
-    console.log(window.offeredSDP);
+    remoteDescription.type = window.offeredSDP.type;
+    //console.log(window.offeredSDP);
     pc.setRemoteDescription(remoteDescription);
     pc.createAnswer(gotAnswer);
   }
