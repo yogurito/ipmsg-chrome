@@ -108,7 +108,9 @@ var IPMessengerBackend = function() {
       };
       createdWindow.contentWindow.callee = true;
       createdWindow.contentWindow.caller = false;
-      createdWindow.contentWindow.offeredSdp = command.appendix;
+      var signal = JSON.parse(command.appendix);
+      createdWindow.contentWindow.offeredCandidates = signal.candidates;
+      createdWindow.contentWindow.offeredSDP = signal.sdp;
     });
   };
   var createVideoInvitationNotification = function(packetInfo, command, callback) {

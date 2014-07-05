@@ -23,10 +23,34 @@ window.RTCIceCandidate = (window.mozRTCIceCandidate ||
   window.RTCIceCandidate);
 
 var pc;
+var iceCandidates = [];
 
 function onIceCandidate(evt) {
   if (evt.candidate) {
-    pc.addIceCandidate(new RTCIceCandidate(evt.candidate));
+    var candidate = new RTCIceCandidate(evt.candidate);
+    pc.addIceCandidate(candidate);
+    iceCandidates.push(candidate);
+  }
+  if (pc.iceGatheringState === 'complete') {
+    if (window.caller) {
+      var socketId;
+      chrome.sockets.udp.create({}, function(socketInfo) {
+        socketId = socketInfo.socketId;
+        chrome.sockets.udp.bind(socketId, '0.0.0.0', 0, function() {
+          var cmd = new IPMessengerCommand();
+          cmd.commandCode = 0x08000100;
+          cmd.appendix = JSON.stringify({
+            candidates: iceCandidates,
+            sdp: pc.localDescription
+          });
+          cmd.userName = 'test';
+          cmd.hostName = 'chrome';
+          chrome.sockets.udp.send(socketId, window.strToSjisBuffer(cmd.toCommandStr()), window.peer.ipAddress, 2425, function(sendInfo) {
+            console.log('sent invitation');
+          });
+        });
+      });
+    }
   }
 }
 
@@ -37,23 +61,9 @@ function onRemoteStreamAdded(event) {
 
 function gotOffer(description) {
   pc.setLocalDescription(description);
-  console.log(description);
   var socketId;
-  chrome.sockets.udp.create({}, function(socketInfo) {
-    socketId = socketInfo.socketId;
-    chrome.sockets.udp.bind(socketId, '0.0.0.0', 0, function() {
-      var cmd = new IPMessengerCommand();
-      cmd.commandCode = 0x08000100;
-      cmd.appendix = description.sdp;
-      cmd.userName = 'test';
-      cmd.hostName = 'chrome';
-      chrome.sockets.udp.send(socketId, window.strToSjisBuffer(cmd.toCommandStr()), window.peer.ipAddress, 2425, function(sendInfo) {});
-    });
-  });
-  //pc2.setRemoteDescription(description);
-  //pc2.createAnswer(gotAnswer);
-  chrome.runtime.onMessage.addListener(function(request, sender, sendResponse){
-    if(request.message === 'ANSWER_SDP') {
+  chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
+    if (request.message === 'ANSWER_SDP') {
       console.log('ANS RECV');
       var remoteDescription = new RTCSessionDescription();
       remoteDescription.sdp = request.sdp.replace('127.0.0.1', window.peer.ipAddress);
@@ -84,22 +94,18 @@ function gotAnswer(description) {
 
 function createPeerConnection(localMediaStream) {
   pc = new RTCPeerConnection(null);
-  pc.onicecandidate = onIceCandidate;
   pc.onaddstream = onRemoteStreamAdded;
-
-  if(window.caller) {
-
-  }
-
   pc.addStream(localMediaStream);
-  if(window.caller) {
+
+  if (window.caller) {
+    pc.onicecandidate = onIceCandidate;
     pc.createOffer(gotOffer);
   }
-  if(window.callee) {
+  if (window.callee) {
     console.log('called');
     var remoteDescription = new RTCSessionDescription();
-    remoteDescription.sdp = window.offeredSdp.replace('127.0.0.1', window.peer.ipAddress);
-    remoteDescription.type = 'offer';
+    remoteDescription.sdp = window.offeredSDP.sdp;
+    console.log(window.offeredSDP);
     pc.setRemoteDescription(remoteDescription);
     pc.createAnswer(gotAnswer);
   }
@@ -118,5 +124,4 @@ navigator.webkitGetUserMedia({
 
   createPeerConnection(localMediaStream);
 
-}, function(e) {
-});
+}, function(e) {});
