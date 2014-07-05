@@ -93,6 +93,7 @@ var IPMessengerCommand = function(message) {
 
     IPMSG_NOPOPUPOPTOBSOLT: 0x00001000,
     IPMSG_NEWMULTIOPTOBSOLT: 0x00040000,
+    IPMSG_CHROME_VIDEOSDP: 0x08000100
 
 
     // IPMSG_RSA_512: 0x00000001,
@@ -181,4 +182,19 @@ var IPMessengerCommand = function(message) {
   this.toCommandStr = function() {
     return [this.version, this.packetNumber, this.userName, this.hostName, this.commandCode, this.appendix].join(':');
   };
+};
+
+var strToSjisBuffer = function(str) {
+  'use strict';
+  var strArray = [];
+  for (var i = 0; i < str.length; i++) {
+    strArray.push(str.charCodeAt(i));
+  }
+  var sjisArray = window.Encoding.convert(strArray, 'SJIS', 'UNICODE');
+  var buf = new ArrayBuffer(sjisArray.length); // 2 bytes for each char
+  var bufView = new Uint8Array(buf);
+  for (i = 0; i < sjisArray.length; i++) {
+    bufView[i] = sjisArray[i];
+  }
+  return buf;
 };

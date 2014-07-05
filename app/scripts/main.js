@@ -117,6 +117,8 @@ var IPMessengerBackend = function() {
       createMessageNotification(packetInfo, command, function(){
         openMessageWindow(packetInfo, command);
       });
+    } else if (commandName === 'IPMSG_NOOPERATION' && _.contains(options, 'IPMSG_CHROME_VIDEOSDP')) {
+      console.log('SDP received');
     }
   };
   this.initializeSocket = function(callback) {
@@ -125,7 +127,7 @@ var IPMessengerBackend = function() {
         return;
       }
       var array = new Uint8Array(info.data);
-      var utf8Array = window.Encoding.convert(array, 'UTF-8', 'SJIS');
+      var utf8Array = window.Encoding.convert(array, 'UNICODE', 'SJIS');
       var commandStr = String.fromCharCode.apply(null, utf8Array);
       var command = new IPMessengerCommand(commandStr);
       //createPacketNotification(info, command);
@@ -147,7 +149,7 @@ var IPMessengerBackend = function() {
     for (var i = 0; i < str.length; i++) {
       strArray.push(str.charCodeAt(i));
     }
-    var sjisArray = window.Encoding.convert(strArray, 'SJIS', 'UTF8');
+    var sjisArray = window.Encoding.convert(strArray, 'SJIS', 'UNICODE');
     var buf = new ArrayBuffer(sjisArray.length); // 2 bytes for each char
     var bufView = new Uint8Array(buf);
     for (i = 0; i < sjisArray.length; i++) {

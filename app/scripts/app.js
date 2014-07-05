@@ -60,4 +60,14 @@ angular.module('IPMessenger', [])
         }
       });
     };
+    $scope.startVideo = function(host) {
+      chrome.app.window.create('video.html', {
+        bounds: {
+          width: 600,
+          height: 800
+        }
+      }, function(createdWindow){
+        createdWindow.contentWindow.peer = host;
+      });
+    };
   });

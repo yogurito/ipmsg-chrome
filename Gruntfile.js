@@ -200,7 +200,8 @@ module.exports = function(grunt) {
       html: [
         '<%= config.app %>/index.html',
         '<%= config.app %>/config.html',
-        '<%= config.app %>/message.html'
+        '<%= config.app %>/message.html',
+        '<%= config.app %>/video.html'
       ]
     },
 
