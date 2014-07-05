@@ -25,15 +25,21 @@ angular.module('IPMessenger', [])
 
     $scope.sendMessage = function() {
       var socketId;
+      var destinations = [];
+      angular.forEach($scope.hostList, function(host){
+        if(host.selected) {
+          destinations.push(host);
+        }
+      });
       chrome.sockets.udp.create({}, function(socketInfo) {
         socketId = socketInfo.socketId;
         chrome.sockets.udp.bind(socketId, '0.0.0.0', 0, function() {
-          chrome.sockets.udp.send(socketId, strToSjisBuffer('1:1000:chrome:macbook:32:' + $scope.message), $scope.toIPAddress, 2425, function(sendInfo) {
-            if (sendInfo.resultCode === 0) {
-              $scope.clearForm();
-              $scope.$apply();
-            }
+          var sendCallback = function(sendInfo){};
+          angular.forEach(destinations, function(host){
+            chrome.sockets.udp.send(socketId, strToSjisBuffer('1:1000:chrome:chrome:32:' + $scope.message), host.ipAddress, 2425, sendCallback);
           });
+          $scope.clearForm();
+          $scope.$apply();
         });
       });
     };
@@ -46,7 +52,7 @@ angular.module('IPMessenger', [])
     $scope.hostList = [];
     chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
       if (request.message === 'hostListUpdate') {
-        $scope.hostList.push(request.host);
+        $scope.hostList = request.hostList;
         $scope.$apply();
       }
     });

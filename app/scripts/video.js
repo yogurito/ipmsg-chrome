@@ -52,20 +52,43 @@ function gotOffer(description) {
   });
   //pc2.setRemoteDescription(description);
   //pc2.createAnswer(gotAnswer);
+  chrome.runtime.onMessage.addListener(function(request, sender, sendResponse){
+    if(request.message === 'ANSWER_SDP') {
+      console.log('ANS RECV');
+      var remoteDescription = new RTCSessionDescription();
+      remoteDescription.sdp = request.sdp.replace('127.0.0.1', window.peer.ipAddress);
+      remoteDescription.type = 'answer';
+      console.log(remoteDescription);
+      pc.setRemoteDescription(remoteDescription);
+    }
+  });
 }
 
 function gotAnswer(description) {
   pc.setLocalDescription(description);
   console.log(description);
+  var socketId;
+  chrome.sockets.udp.create({}, function(socketInfo) {
+    socketId = socketInfo.socketId;
+    chrome.sockets.udp.bind(socketId, '0.0.0.0', 0, function() {
+      var cmd = new IPMessengerCommand();
+      cmd.commandCode = 0x08000200;
+      cmd.appendix = description.sdp;
+      cmd.userName = 'test';
+      cmd.hostName = 'chrome';
+      chrome.sockets.udp.send(socketId, window.strToSjisBuffer(cmd.toCommandStr()), window.peer.ipAddress, 2425, function(sendInfo) {});
+    });
+  });
   //pc.setRemoteDescription(description);
 }
 
 function createPeerConnection(localMediaStream) {
   pc = new RTCPeerConnection(null);
   pc.onicecandidate = onIceCandidate;
+  pc.onaddstream = onRemoteStreamAdded;
 
   if(window.caller) {
-    pc.onaddstream = onRemoteStreamAdded;
+
   }
 
   pc.addStream(localMediaStream);
@@ -75,7 +98,8 @@ function createPeerConnection(localMediaStream) {
   if(window.callee) {
     console.log('called');
     var remoteDescription = new RTCSessionDescription();
-    remoteDescription.sdp = window.offeredSdp;
+    remoteDescription.sdp = window.offeredSdp.replace('127.0.0.1', window.peer.ipAddress);
+    remoteDescription.type = 'offer';
     pc.setRemoteDescription(remoteDescription);
     pc.createAnswer(gotAnswer);
   }
@@ -90,7 +114,6 @@ navigator.webkitGetUserMedia({
 
   localVideo.onloadedmetadata = function(e) {
     // Ready to go. Do some stuff.
-    console.log(e);
   };
 
   createPeerConnection(localMediaStream);

@@ -138,7 +138,8 @@ var IPMessengerBackend = function() {
       var host = _this.hostList.appendHost(packetInfo.remoteAddress, command.hostName, command.userName);
       chrome.runtime.sendMessage({
         message: 'hostListUpdate',
-        host: host
+        host: host,
+        hostList: _this.hostList.getHostList()
       });
     } else if (commandName === 'IPMSG_SENDMSG') {
       var replyCommand = new IPMessengerCommand();
@@ -150,11 +151,13 @@ var IPMessengerBackend = function() {
       createMessageNotification(packetInfo, command, function(){
         openMessageWindow(packetInfo, command);
       });
-    } else if (command.commandCode === 134217984) {
+    } else if (command.commandCode === 0x8000100) {
       createVideoInvitationNotification(packetInfo, command, function(){
         console.log(command);
         openVideoWindow(packetInfo, command);
       });
+    } else if (command.commandCode === 0x08000200) {
+      chrome.runtime.sendMessage({message: 'ANSWER_SDP', sdp: command.appendix}, function(response){});
     }
     console.log(command);
   };
