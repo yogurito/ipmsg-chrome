@@ -5,6 +5,7 @@
 angular.module('IPMessenger', [])
   .controller('VideoChatCtrl', function($scope, $window, $document) {
     $scope.peer = $window.peer;
+    $scope.offeredSdp = $window.offeredSdp;
   });
 
 navigator.getUserMedia = navigator.getUserMedia ||
@@ -21,24 +22,11 @@ window.RTCSessionDescription = (window.mozRTCSessionDescription ||
 window.RTCIceCandidate = (window.mozRTCIceCandidate ||
   window.RTCIceCandidate);
 
-var sendConnectionConfig = function() {
+var pc;
 
-};
-
-var pc1, pc2;
-if (window.caller) {
-
-}
-
-function onIceCandidate1(evt) {
+function onIceCandidate(evt) {
   if (evt.candidate) {
-    pc2.addIceCandidate(new RTCIceCandidate(evt.candidate));
-  }
-}
-
-function onIceCandidate2(event) {
-  if (event.candidate) {
-    pc1.addIceCandidate(new RTCIceCandidate(event.candidate));
+    pc.addIceCandidate(new RTCIceCandidate(evt.candidate));
   }
 }
 
@@ -48,7 +36,8 @@ function onRemoteStreamAdded(event) {
 }
 
 function gotOffer(description) {
-  pc1.setLocalDescription(description);
+  pc.setLocalDescription(description);
+  console.log(description);
   var socketId;
   chrome.sockets.udp.create({}, function(socketInfo) {
     socketId = socketInfo.socketId;
@@ -61,27 +50,36 @@ function gotOffer(description) {
       chrome.sockets.udp.send(socketId, window.strToSjisBuffer(cmd.toCommandStr()), window.peer.ipAddress, 2425, function(sendInfo) {});
     });
   });
-  pc2.setRemoteDescription(description);
-  pc2.createAnswer(gotAnswer);
+  //pc2.setRemoteDescription(description);
+  //pc2.createAnswer(gotAnswer);
 }
 
 function gotAnswer(description) {
-  pc2.setLocalDescription(description);
-  pc1.setRemoteDescription(description);
+  pc.setLocalDescription(description);
+  console.log(description);
+  //pc.setRemoteDescription(description);
 }
 
 function createPeerConnection(localMediaStream) {
-  pc1 = new RTCPeerConnection(null);
-  pc1.onicecandidate = onIceCandidate1;
+  pc = new RTCPeerConnection(null);
+  pc.onicecandidate = onIceCandidate;
 
-  pc2 = new RTCPeerConnection(null);
-  pc2.onicecandidate = onIceCandidate2;
-  pc2.onaddstream = onRemoteStreamAdded;
+  if(window.caller) {
+    pc.onaddstream = onRemoteStreamAdded;
+  }
 
-  pc1.addStream(localMediaStream);
-  pc1.createOffer(gotOffer);
+  pc.addStream(localMediaStream);
+  if(window.caller) {
+    pc.createOffer(gotOffer);
+  }
+  if(window.callee) {
+    console.log('called');
+    var remoteDescription = new RTCSessionDescription();
+    remoteDescription.sdp = window.offeredSdp;
+    pc.setRemoteDescription(remoteDescription);
+    pc.createAnswer(gotAnswer);
+  }
 }
-
 
 navigator.webkitGetUserMedia({
   video: true,
@@ -98,5 +96,4 @@ navigator.webkitGetUserMedia({
   createPeerConnection(localMediaStream);
 
 }, function(e) {
-  console.log('Rejected', e);
 });

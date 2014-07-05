@@ -98,6 +98,39 @@ var IPMessengerBackend = function() {
       });
     });
   };
+  var openVideoWindow = function(packetInfo, command) {
+    chrome.app.window.create('video.html', {
+      width: 600,
+      height: 800
+    }, function(createdWindow){
+      createdWindow.contentWindow.peer = {
+        ipAddress: packetInfo.remoteAddress
+      };
+      createdWindow.contentWindow.callee = true;
+      createdWindow.contentWindow.caller = false;
+      createdWindow.contentWindow.offeredSdp = command.appendix;
+    });
+  };
+  var createVideoInvitationNotification = function(packetInfo, command, callback) {
+    chrome.notifications.create('', {
+      type: 'list',
+      title: 'IPMessenger for Chrome',
+      message: 'Received Video Chat Invitation',
+      iconUrl: '/images/icon-128.png',
+      items: [{
+        title: 'From',
+        message: command.userName + ' (' + command.hostName + ')'
+      }],
+      buttons: [{
+        title: 'Accept'
+      }],
+      isClickable: true
+    }, function(notificationId){
+      chrome.notifications.onButtonClicked.addListener(function(){
+        callback();
+      });
+    });
+  };
   var handleCommand = function(packetInfo, command) {
     var commandName = command.getCommandName();
     var options = command.getOptions();
@@ -117,8 +150,11 @@ var IPMessengerBackend = function() {
       createMessageNotification(packetInfo, command, function(){
         openMessageWindow(packetInfo, command);
       });
-    } else if (commandName === 'IPMSG_NOOPERATION' && _.contains(options, 'IPMSG_CHROME_VIDEOSDP')) {
-      console.log('SDP received');
+    } else if (command.commandCode === 134217984) {
+      createVideoInvitationNotification(packetInfo, command, function(){
+        console.log(command);
+        openVideoWindow(packetInfo, command);
+      });
     }
     console.log(command);
   };

@@ -68,6 +68,8 @@ angular.module('IPMessenger', [])
         }
       }, function(createdWindow){
         createdWindow.contentWindow.peer = host;
+        createdWindow.contentWindow.caller = true;
+        createdWindow.contentWindow.callee = false;
       });
     };
   });
