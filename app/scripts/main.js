@@ -92,8 +92,8 @@ var IPMessengerBackend = function() {
         title: 'Open'
       }],
       isClickable: true
-    }, function(notificationId){
-      chrome.notifications.onButtonClicked.addListener(function(){
+    }, function(notificationId) {
+      chrome.notifications.onButtonClicked.addListener(function() {
         callback();
       });
     });
@@ -102,7 +102,7 @@ var IPMessengerBackend = function() {
     chrome.app.window.create('video.html', {
       width: 600,
       height: 800
-    }, function(createdWindow){
+    }, function(createdWindow) {
       createdWindow.contentWindow.peer = {
         ipAddress: packetInfo.remoteAddress
       };
@@ -125,8 +125,8 @@ var IPMessengerBackend = function() {
         title: 'Accept'
       }],
       isClickable: true
-    }, function(notificationId){
-      chrome.notifications.onButtonClicked.addListener(function(){
+    }, function(notificationId) {
+      chrome.notifications.onButtonClicked.addListener(function() {
         callback();
       });
     });
@@ -134,13 +134,21 @@ var IPMessengerBackend = function() {
   var handleCommand = function(packetInfo, command) {
     var commandName = command.getCommandName();
     var options = command.getOptions();
-    if (commandName === 'IPMSG_BR_ENTRY') {
+    if (commandName === 'IPMSG_BR_ENTRY' || commandName === 'IPMSG_ANSENTRY') {
       var host = _this.hostList.appendHost(packetInfo.remoteAddress, command.hostName, command.userName);
       chrome.runtime.sendMessage({
         message: 'hostListUpdate',
         host: host,
         hostList: _this.hostList.getHostList()
       });
+      if(commandName === 'IPMSG_BR_ENTRY' && !_.contains(_.map(_this.myAddress, function(addr){return addr.toString();}), packetInfo.remoteAddress)) {
+        var ansCommand = new IPMessengerCommand();
+        ansCommand.userName = _this.myHost.userName;
+        ansCommand.hostName = _this.myHost.hostName;
+        ansCommand.commandCode = ansCommand.commandCodes.IPMSG_ANSENTRY;
+        var sendCallaback = function(sendInfo) {};
+        chrome.sockets.udp.send(_this.socketId, strToSjisBuffer(ansCommand.toCommandStr()), packetInfo.remoteAddress, 2425, sendCallaback);
+      }
     } else if (commandName === 'IPMSG_SENDMSG') {
       var replyCommand = new IPMessengerCommand();
       replyCommand.userName = _this.myHost.userName;
@@ -148,16 +156,19 @@ var IPMessengerBackend = function() {
       replyCommand.commandCode = replyCommand.commandCodes.IPMSG_RECVMSG;
       chrome.sockets.udp.send(_this.socketId, strToSjisBuffer(replyCommand.toCommandStr()), packetInfo.remoteAddress, 2425, function(sendInfo) {});
       command.receivedAt = new Date();
-      createMessageNotification(packetInfo, command, function(){
+      createMessageNotification(packetInfo, command, function() {
         openMessageWindow(packetInfo, command);
       });
     } else if (command.commandCode === 0x8000100) {
-      createVideoInvitationNotification(packetInfo, command, function(){
+      createVideoInvitationNotification(packetInfo, command, function() {
         console.log(command);
         openVideoWindow(packetInfo, command);
       });
     } else if (command.commandCode === 0x08000200) {
-      chrome.runtime.sendMessage({message: 'ANSWER_SDP', sdp: command.appendix}, function(response){});
+      chrome.runtime.sendMessage({
+        message: 'ANSWER_SDP',
+        sdp: command.appendix
+      }, function(response) {});
     }
     console.log(command);
   };
