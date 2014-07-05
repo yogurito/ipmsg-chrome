@@ -58,7 +58,7 @@ function gotOffer(description) {
       cmd.appendix = description.sdp;
       cmd.userName = 'test';
       cmd.hostName = 'chrome';
-      chrome.sockets.udp.send(socketId, window.strToSjisBuffer(cmd.toCommandStr), window.peer.ipAddress, 2425, function(sendInfo) {});
+      chrome.sockets.udp.send(socketId, window.strToSjisBuffer(cmd.toCommandStr()), window.peer.ipAddress, 2425, function(sendInfo) {});
     });
   });
   pc2.setRemoteDescription(description);

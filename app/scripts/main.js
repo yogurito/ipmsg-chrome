@@ -120,6 +120,7 @@ var IPMessengerBackend = function() {
     } else if (commandName === 'IPMSG_NOOPERATION' && _.contains(options, 'IPMSG_CHROME_VIDEOSDP')) {
       console.log('SDP received');
     }
+    console.log(command);
   };
   this.initializeSocket = function(callback) {
     var onReceive = function(info) {
